@@ -11,10 +11,11 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
-    message: "AI Resume Analyzer API Running"
+    message: "AI Resume Analyzer API Running",
   });
 });
 
-// Upload route
-API.post("/api/resume/upload", formData);
+// Upload routes
+app.use("/api/upload", uploadRoutes);
+
 export default app;
