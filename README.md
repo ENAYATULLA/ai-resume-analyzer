@@ -1,114 +1,97 @@
 # 🚀 AI Resume Analyzer SaaS
 
-An AI-powered full-stack SaaS platform that analyzes resumes using ATS standards, extracts skills, matches job roles, and provides intelligent career improvement suggestions.
+An AI-powered resume analysis platform that evaluates resumes using ATS standards, extracts key insights, and provides actionable feedback to improve job readiness.
+
+Built with **Next.js + Express + TypeScript**
 
 ---
 
-## 🎯 Problem Statement
+## ✨ Features
 
-Most job seekers are rejected by Applicant Tracking Systems (ATS) before a recruiter even sees their resume.
-
-This happens due to:
-- Poor keyword optimization
-- Incorrect formatting
-- Missing skill alignment
-
-This project solves this problem by using AI-based resume intelligence.
-
----
-
-## 💡 Solution Overview
-
-The system works as follows:
-
-1. User uploads resume (PDF)
-2. Backend extracts text using PDF parser
-3. AI engine analyzes resume content
-4. System generates:
-   - ATS Score
-   - Skill extraction
-   - Job role matching
-   - Resume improvement suggestions
-   - Cover letter generation
+- 📄 Upload PDF resumes instantly
+- 🧠 AI-powered resume parsing & analysis
+- 📊 ATS score generation (0–100)
+- 🔍 Skill extraction from resume content
+- 👤 Automatic candidate information detection
+- ⚡ Fast and responsive UI (Next.js App Router)
+- 🧾 Clean structured JSON response for integration
 
 ---
 
-## 🧱 System Architecture
+## 🧠 How It Works
 
-Frontend (Next.js 14)
-   ↓
-Axios API Requests
-   ↓
-Backend (Node.js + Express)
-   ↓
-PDF Parsing (pdf-parse)
-   ↓
-AI Resume Analysis Engine
-   ↓
-Response:
-- ATS Score
-- Skills Extracted
-- Job Match
-- Career Insights
+1. User uploads a resume (PDF)
+2. Backend parses the document using `pdf-parse`
+3. Text is analyzed for:
+   - Name extraction
+   - Skills detection
+   - Experience level estimation
+   - ATS scoring logic
+4. Structured response is sent to frontend
+5. UI displays insights in a readable format
 
 ---
 
-## ⚙️ Tech Stack
+## 🏗️ Tech Stack
 
 ### Frontend
-- Next.js 14 (TypeScript)
+- Next.js 14 (App Router)
+- TypeScript
 - Axios
-- SaaS Dashboard UI
+- Tailwind CSS
 
 ### Backend
-- Node.js + Express
+- Node.js
+- Express.js
 - TypeScript
-- Multer (File Upload)
 - pdf-parse
 
-### AI Layer
-- Resume analysis engine
-- ATS scoring system
-- Skill extraction logic
-- Job matching algorithm
-
 ---
 
-## 🚀 Key Features
+## 📊 Output Example
 
-- Resume Upload System
-- AI Resume Analysis Engine
-- ATS Score Calculation
-- Skill Extraction
-- Job Role Matching
-- Career Insights
-- Resume Rewrite Suggestions
-- Cover Letter Generator
+```json
+{
+  "name": "Enayat Ullah",
+  "email": "enayat@example.com",
+  "skills": ["React", "Node.js", "TypeScript"],
+  "experience": "Mid Level",
+  "atsScore": 78
+}
 
----
+🎬 Demo
 
-## 📁 Project Structure
-ai-resume-analyzer/
-├── frontend/ (Next.js SaaS UI)
-├── backend/ (Express API server)
-│ ├── services/
-│ ├── routes/
-│ ├── controllers/
-│ └── uploads/
+📸 Screenshots
+Upload Resume
 
+Analysis Result
 
----
-
-## 🖥️ Local Setup
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-
-### backendtend
-
+⚙️ Installation
+1. Clone repo
+git clone https://github.com/your-username/ai-resume-analyzer.git
+2. Install backend
 cd backend
 npm install
 npm run dev
+3. Install frontend
+cd frontend
+npm install
+npm run dev
+🌐 Environment Variables
+
+Backend .env:
+
+PORT=5000
+
+Frontend .env:
+
+NEXT_PUBLIC_API_URL=http://localhost:5000
+🚀 Future Improvements
+AI-based LLM resume scoring upgrade
+Job matching system
+Resume improvement suggestions
+PDF report download feature
+👨‍💻 Author
+
+Built by Enayat Ullah
+Full Stack Developer | AI Enthusiast

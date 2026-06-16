@@ -71,6 +71,11 @@ export const analyzeResume = async (
       tools: skillCategories.tools.filter((s) => text.includes(s.toLowerCase())),
     };
 
+    const isTeachingProfile =
+  text.includes("teacher") ||
+  text.includes("professor") ||
+  text.includes("lecturer") ||
+  text.includes("education");
     // =========================
     // EXPERIENCE LEVEL
     // =========================
@@ -91,7 +96,7 @@ export const analyzeResume = async (
     // =========================
     // NAME + EMAIL
     // =========================
-    const { name, email } = extractNameAndEmail(resumeText);
+    const { name, email } = await extractNameAndEmail(resumeText);
 
     // =========================
     // JOB MATCHING

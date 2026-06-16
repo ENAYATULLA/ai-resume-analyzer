@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import healthRoutes from "./routes/health.routes";
 import uploadRoutes from "./routes/upload.routes";
 
 dotenv.config();
@@ -11,10 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      process.env.FRONTEND_URL || "",
-    ],
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -22,8 +18,15 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ROUTES
-app.use("/health", healthRoutes);
+// HEALTH (FIXED PATH)
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Backend is running 🚀",
+  });
+});
+
+// UPLOAD ROUTE (IMPORTANT)
 app.use("/api/upload", uploadRoutes);
 
 const PORT = process.env.PORT || 5000;

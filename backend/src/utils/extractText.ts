@@ -1,55 +1,94 @@
 export function extractNameAndEmail(text: string) {
-  const cleanText = text.replace(/\s+/g, " ");
+  const emailRegex =
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
-  // ======================
-  // EMAIL EXTRACTION
-  // ======================
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  const emailMatch = cleanText.match(emailRegex);
+  const emailMatch = text.match(emailRegex);
   const email = emailMatch ? emailMatch[0] : "N/A";
-
-  // ======================
-  // NAME EXTRACTION (SMART)
-  // ======================
 
   const lines = text
     .split("\n")
     .map(l => l.trim())
     .filter(Boolean);
 
-  let name = "N/A";
+  let bestName = "Not Found";
+  let bestScore = 0;
 
-  for (let line of lines) {
-    const trimmed = line.trim();
+  const badWords = [
+    "artificial intelligence",
+    "natural language",
+    "machine learning",
+    "data science",
+    "deep learning",
+    "software engineering",
+    "resume",
+    "objective",
+    "education",
+    "experience",
+    "skills",
+    "projects",
+    "summary",
+    "university",
+    "college",
+    "institute",
+    "department"
+  ];
 
-    // skip bad lines
-    if (
-      trimmed.includes("@") ||
-      trimmed.toLowerCase().includes("email") ||
-      trimmed.toLowerCase().includes("phone") ||
-      trimmed.toLowerCase().includes("resume") ||
-      trimmed.toLowerCase().includes("curriculum") ||
-      trimmed.toLowerCase().includes("artificial intelligence") ||
-      trimmed.toLowerCase().includes("machine learning") ||
-      trimmed.toLowerCase().includes("developer") ||
-      trimmed.length > 40
-    ) {
-      continue;
+  const isValidCandidate = (line: string) => {
+    const lower = line.toLowerCase();
+
+    if (line.includes("@")) return false;
+    if (line.length < 3 || line.length > 50) return false;
+
+    if (badWords.some(w => lower.includes(w))) return false;
+
+    if (!/^[A-Za-z. ]+$/.test(line)) return false;
+
+    const words = line.split(" ").filter(Boolean);
+
+    if (words.length < 2 || words.length > 4) return false;
+
+    return true;
+  };
+
+  // 🔥 IMPORTANT CHANGE: search ONLY top 15 lines (resume header area)
+  const searchLines = lines.slice(0, 15);
+
+  for (let i = 0; i < searchLines.length; i++) {
+    const line = searchLines[i];
+
+    if (!isValidCandidate(line)) continue;
+
+    const words = line.split(" ").filter(Boolean);
+
+    let score = 0;
+
+    // position priority (very important)
+    score += (15 - i);
+
+    // name pattern bonus
+    const titleCaseRatio =
+      words.filter(w => /^[A-Z][a-z]+$/.test(w)).length / words.length;
+
+    score += titleCaseRatio * 5;
+
+    // 2–3 word preference
+    if (words.length === 2 || words.length === 3) {
+      score += 3;
     }
 
-    // NAME RULE:
-    // 2–4 words, mostly alphabets
-    const words = trimmed.split(" ");
+    // penalty if ALL CAPS (topics)
+    if (line === line.toUpperCase()) {
+      score -= 2;
+    }
 
-    if (
-      words.length >= 2 &&
-      words.length <= 4 &&
-      /^[A-Za-z ]+$/.test(trimmed)
-    ) {
-      name = trimmed;
-      break;
+    if (score > bestScore) {
+      bestScore = score;
+      bestName = line;
     }
   }
 
-  return { name, email };
+  return {
+    name: bestScore >= 3 ? bestName : "Not Found",
+    email
+  };
 }
