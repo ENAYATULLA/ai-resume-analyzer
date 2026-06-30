@@ -7,79 +7,67 @@ export function extractNameAndEmail(text: string) {
 
   const lines = text
     .split("\n")
-    .map(l => l.trim())
+    .map((l) => l.trim())
     .filter(Boolean);
 
-  let bestName = "Not Found";
-  let bestScore = 0;
-
   const badWords = [
-    "artificial intelligence",
-    "natural language",
-    "machine learning",
-    "data science",
-    "deep learning",
-    "software engineering",
-    "resume",
     "objective",
     "education",
     "experience",
     "skills",
     "projects",
+    "publication",
+    "research",
     "summary",
     "university",
     "college",
     "institute",
-    "department"
+    "department",
+    "artificial intelligence",
+    "natural language",
+    "machine learning",
+    "information retrieval",
+    "large language",
+    "multilingual",
+    "email",
+    "phone",
+    "address",
   ];
 
-  const isValidCandidate = (line: string) => {
+  let bestName = "Not Found";
+  let bestScore = 0;
+
+  for (const line of lines) {
     const lower = line.toLowerCase();
 
-    if (line.includes("@")) return false;
-    if (line.length < 3 || line.length > 50) return false;
+    if (line.includes("@")) continue;
 
-    if (badWords.some(w => lower.includes(w))) return false;
+    if (badWords.some((w) => lower.includes(w))) continue;
 
-    if (!/^[A-Za-z. ]+$/.test(line)) return false;
+    if (!/^[A-Za-z.\s]+$/.test(line)) continue;
 
-    const words = line.split(" ").filter(Boolean);
+    const words = line.split(/\s+/).filter(Boolean);
 
-    if (words.length < 2 || words.length > 4) return false;
-
-    return true;
-  };
-
-  // 🔥 IMPORTANT CHANGE: search ONLY top 15 lines (resume header area)
-  const searchLines = lines.slice(0, 15);
-
-  for (let i = 0; i < searchLines.length; i++) {
-    const line = searchLines[i];
-
-    if (!isValidCandidate(line)) continue;
-
-    const words = line.split(" ").filter(Boolean);
+    if (words.length < 2 || words.length > 4) continue;
 
     let score = 0;
 
-    // position priority (very important)
-    score += (15 - i);
-
-    // name pattern bonus
-    const titleCaseRatio =
-      words.filter(w => /^[A-Z][a-z]+$/.test(w)).length / words.length;
-
-    score += titleCaseRatio * 5;
-
-    // 2–3 word preference
-    if (words.length === 2 || words.length === 3) {
-      score += 3;
+    // ENAYAT ULLAH type names
+    if (/^[A-Z\s]+$/.test(line)) {
+      score += 20;
     }
 
-    // penalty if ALL CAPS (topics)
-    if (line === line.toUpperCase()) {
-      score -= 2;
-    }
+    // Enayat Ullah type names
+    const titleWords = words.filter((w) =>
+      /^[A-Z][a-z]+$/.test(w)
+    ).length;
+
+    score += titleWords * 5;
+
+    if (words.length === 2) score += 10;
+    if (words.length === 3) score += 8;
+
+    if (line.length < 25) score += 10;
 
     if (score > bestScore) {
       bestScore = score;
@@ -88,7 +76,7 @@ export function extractNameAndEmail(text: string) {
   }
 
   return {
-    name: bestScore >= 3 ? bestName : "Not Found",
-    email
+    name: bestName,
+    email,
   };
 }

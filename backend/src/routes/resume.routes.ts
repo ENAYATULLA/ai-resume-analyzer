@@ -1,16 +1,30 @@
 import { Router } from "express";
-import multer from "multer";
+import { upload } from "../middleware/upload.middleware";
+import { analyzeResume } from "../services/resumeAI.service";
 
 const router = Router();
 
-const upload = multer({ dest: "uploads/" });
+router.post("/upload", upload.single("file"), async (req: any, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
 
-// TEMP upload endpoint (must exist for frontend)
-router.post("/upload", upload.single("file"), (req, res) => {
-  res.json({
-    success: true,
-    message: "File uploaded successfully",
-  });
+    const result = await analyzeResume(req.file.path);
+
+    return res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error",
+    });
+  }
 });
 
 export default router;

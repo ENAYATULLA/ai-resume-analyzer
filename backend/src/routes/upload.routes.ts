@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { upload } from "../middleware/upload.middleware";
 import { analyzeResume } from "../services/resumeAI.service";
 
+
 const router = express.Router();
 
 router.post(

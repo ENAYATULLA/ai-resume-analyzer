@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import API from "@/lib/api";
+import API from "../src/lib/api";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<any>(null);
@@ -33,12 +33,15 @@ export default function Home() {
       setLoading(true);
 
       const formData = new FormData();
-      formData.append("resume", file);
+      formData.append("file", file);
 
-      const res = await API.post("/upload", formData);
+const res = await API.post("/resume/upload", formData, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
 
-      const analysis = res.data?.analysis ?? null;
-      setUploadResult(analysis);
+setUploadResult(res.data?.data || null);
     } catch (error) {
       setUploadResult({ error: "Upload failed" });
     } finally {

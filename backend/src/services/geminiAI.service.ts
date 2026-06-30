@@ -1,13 +1,11 @@
 import axios from "axios";
 
-export const analyzeWithAI = async (
-  resumeText: string
-) => {
+export const analyzeWithAI = async (resumeText: string) => {
   try {
     const prompt = `
 You are a professional ATS Resume Analyzer.
 
-Analyze the resume and return ONLY valid JSON.
+Return ONLY valid JSON. No markdown, no explanation.
 
 {
   "name": "",
@@ -22,6 +20,11 @@ Analyze the resume and return ONLY valid JSON.
   "improvement_tips": []
 }
 
+Rules:
+- If unknown values, use empty string or empty array
+- Do not hallucinate personal info
+- Keep JSON strictly valid
+
 Resume:
 ${resumeText}
 `;
@@ -31,35 +34,52 @@ ${resumeText}
       {
         contents: [
           {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
+            parts: [{ text: prompt }],
+          },
+        ],
       },
       {
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    const rawText =
-      response.data?.candidates?.[0]?.content?.parts?.[0]
-        ?.text || "{}";
+    let rawText =
+      response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
-    console.log("RAW GEMINI RESPONSE:");
-    console.log(rawText);
+    console.log("RAW GEMINI RESPONSE:", rawText);
 
-    const cleanedText = rawText
+    // =========================
+    // CLEANING FIX (IMPORTANT)
+    // =========================
+    rawText = rawText
       .replace(/```json/g, "")
       .replace(/```/g, "")
+      .replace(/^[^{]*/, "") // remove garbage before JSON
       .trim();
 
-    return JSON.parse(cleanedText);
+    // =========================
+    // SAFE JSON PARSE
+    // =========================
+    try {
+      return JSON.parse(rawText);
+    } catch (err) {
+      console.error("JSON Parse Failed:", rawText);
 
+      return {
+        name: "",
+        email: "",
+        skills: [],
+        experience_level: "",
+        ats_score: 0,
+        strengths: [],
+        weaknesses: [],
+        missing_skills: [],
+        job_roles: [],
+        improvement_tips: [],
+      };
+    }
   } catch (error: any) {
     console.error(
       "Gemini Analysis Error:",

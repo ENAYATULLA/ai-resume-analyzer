@@ -1,19 +1,28 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+// ✅ Ensure uploads folder exists (VERY COMMON BUG)
+const uploadPath = "uploads";
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
 
 // Storage config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/");
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "-" + file.originalname;
-    cb(null, uniqueName);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
   }
 });
 
 // File filter (only pdf/doc/docx)
-const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = [
     "application/pdf",
     "application/msword",
@@ -23,7 +32,7 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only PDF/DOC/DOCX files allowed"), false);
+    cb(new Error("Only PDF/DOC/DOCX files allowed"));
   }
 };
 

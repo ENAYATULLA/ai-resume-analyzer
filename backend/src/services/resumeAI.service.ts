@@ -16,12 +16,19 @@ export const analyzeResume = async (
 ) => {
   try {
     // =========================
-    // PDF READ
+    // PDF READ (FIXED)
     // =========================
     const buffer = fs.readFileSync(filePath);
     const pdfData = await pdfParse(buffer);
 
-    const resumeText = pdfData.text || "";
+    let resumeText = pdfData?.text || "";
+
+   resumeText = resumeText
+  .replace(/\r/g, "")
+  .replace(/\t/g, " ")
+  .replace(/[ ]{2,}/g, " ")
+  .replace(/\n{2,}/g, "\n")
+  .trim();
 
     if (!resumeText.trim()) {
       return {
@@ -30,7 +37,12 @@ export const analyzeResume = async (
       };
     }
 
-    const text = resumeText.toLowerCase();
+    const text = resumeText
+      .toLowerCase()
+      .replace(/\./g, " ")
+      .replace(/,/g, " ")
+      .replace(/-/g, " ")
+      .replace(/\s+/g, " ");
 
     // =========================
     // SECTION EXTRACTION
@@ -53,7 +65,7 @@ export const analyzeResume = async (
     const allSkills = Object.values(skillCategories).flat();
 
     const detectedSkills = allSkills.filter((skill) =>
-      text.includes(skill.toLowerCase())
+      text.includes(skill.toLowerCase().replace(/\./g, " "))
     );
 
     const uniqueSkills = [...new Set(detectedSkills)];
@@ -62,30 +74,53 @@ export const analyzeResume = async (
     // CATEGORIZED SKILLS
     // =========================
     const categorizedSkills = {
-      frontend: skillCategories.frontend.filter((s) => text.includes(s.toLowerCase())),
-      backend: skillCategories.backend.filter((s) => text.includes(s.toLowerCase())),
-      database: skillCategories.database.filter((s) => text.includes(s.toLowerCase())),
-      ai_ml: skillCategories.ai_ml.filter((s) => text.includes(s.toLowerCase())),
-      devops: skillCategories.devops.filter((s) => text.includes(s.toLowerCase())),
-      programming: skillCategories.programming.filter((s) => text.includes(s.toLowerCase())),
-      tools: skillCategories.tools.filter((s) => text.includes(s.toLowerCase())),
+      frontend: skillCategories.frontend.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      backend: skillCategories.backend.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      database: skillCategories.database.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      ai_ml: skillCategories.ai_ml.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      devops: skillCategories.devops.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      programming: skillCategories.programming.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
+      tools: skillCategories.tools.filter((s) =>
+        text.includes(s.toLowerCase().replace(/\./g, " "))
+      ),
     };
 
-    const isTeachingProfile =
-  text.includes("teacher") ||
-  text.includes("professor") ||
-  text.includes("lecturer") ||
-  text.includes("education");
     // =========================
     // EXPERIENCE LEVEL
     // =========================
     let experienceLevel = "Fresher";
 
-    if (text.includes("senior") || text.includes("lead") || text.includes("5 years")) {
-      experienceLevel = "Senior";
-    } else if (text.includes("intern") || text.includes("trainee")) {
-      experienceLevel = "Beginner";
-    }
+const yearsMatch = text.match(/(\d+)\+?\s*(years|year)/i);
+
+if (yearsMatch) {
+  const years = parseInt(yearsMatch[1]);
+
+  if (years >= 5) {
+    experienceLevel = "Senior";
+  } else if (years >= 2) {
+    experienceLevel = "Intermediate";
+  }
+}
+
+if (
+  text.includes("internship") ||
+  text.includes("intern") ||
+  text.includes("trainee")
+) {
+  experienceLevel = "Beginner";
+}
 
     // =========================
     // ATS SCORE
@@ -215,7 +250,6 @@ export const analyzeResume = async (
     // MISSING SKILLS
     // =========================
     const missingSkills: string[] = [];
-
     if (!uniqueSkills.includes("typescript")) missingSkills.push("TypeScript");
     if (!uniqueSkills.includes("mongodb")) missingSkills.push("MongoDB");
     if (!uniqueSkills.includes("next")) missingSkills.push("Next.js");
@@ -250,7 +284,7 @@ export const analyzeResume = async (
     }`;
 
     // =========================
-    // 🔥 PHASE 7 STEP 3 ADDITION
+    // SERVICES
     // =========================
     const recruiterFeedback = generateRecruiterFeedback({
       text: resumeText,
@@ -265,38 +299,29 @@ export const analyzeResume = async (
       experienceLevel,
       sections,
     });
-    // ===============================
-// PHASE 8 STEP 3 - RESUME REWRITER
-// ===============================
 
-const resumeRewrite = rewriteResume({
-  text: resumeText,
-  skills: uniqueSkills,
-  missingSkills,
-  jobDescription,
-});
-    // ===============================
-// PHASE 8 STEP 1 - COVER LETTER
-// ===============================
+    const resumeRewrite = rewriteResume({
+      text: resumeText,
+      skills: uniqueSkills,
+      missingSkills,
+      jobDescription,
+    });
 
-const primaryRole = jobMatches?.[0]?.role || "Software Developer";
+    const primaryRole = jobMatches?.[0]?.role || "Software Developer";
 
-const coverLetter = generateCoverLetter({
-  name,
-  skills: uniqueSkills,
-  experienceLevel,
-  jobRole: primaryRole,
-});
-    // ===============================
-// PHASE 7 STEP 4 - CAREER ROADMAP
-// ===============================
+    const coverLetter = generateCoverLetter({
+      name,
+      skills: uniqueSkills,
+      experienceLevel,
+      jobRole: primaryRole,
+    });
 
-const careerRoadmap = generateCareerRoadmap({
-  skills: uniqueSkills,
-  missingSkills,
-  experienceLevel,
-  scoreBreakdown,
-});
+    const careerRoadmap = generateCareerRoadmap({
+      skills: uniqueSkills,
+      missingSkills,
+      experienceLevel,
+      scoreBreakdown,
+    });
 
     // =========================
     // RETURN
@@ -304,35 +329,24 @@ const careerRoadmap = generateCareerRoadmap({
     return {
       success: true,
       aiEnabled: false,
-
       text: resumeText.slice(0, 2000),
-
       skills: uniqueSkills,
       categorizedSkills,
-
       experienceLevel,
-
       name,
       email,
-
       atsScore,
-
       strengths,
       weaknesses,
-
       missingSkills,
       jobRoles: jobMatches.map((job) => job.role),
       jobMatches,
-
       improvementTips,
       sections,
-
       summary,
       careerRoadmap,
       coverLetter,
       resumeRewrite,
-
-      // 🔥 PHASE 7 OUTPUT
       recruiterFeedback,
       scoreBreakdown,
     };
